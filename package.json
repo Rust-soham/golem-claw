@@ -1,5 +1,14 @@
 {
+	"type": "module",
+	"scripts": {
+		"build": "tsc",
+		"dev": "node --env-file=.env --watch --watch-path=src --experimental-strip-types src/bot.ts",
+		"typecheck": "tsc --noEmit",
+		"typecheck:watch": "tsc --noEmit --watch",
+		"start": "node --env-file=.env dist/bot.js"
+	},
 	"devDependencies": {
+		"@types/node": "^25.8.0",
 		"typescript": "^6.0.3"
 	},
 	"dependencies": {
