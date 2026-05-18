@@ -201,9 +201,12 @@ Goal:
 
 - Gemini Flash
 
-### Database
+### Memory / Persistence
 
-- PostgreSQL
+- Golem durable agent state
+- User-scoped shared memory agents
+- Agent-local state for task/session memory
+- Optional external database only if a later feature truly needs relational queries
 
 ### Deployment
 
@@ -251,7 +254,7 @@ Services
    ├─ Reminders
    └─ LLM
    ↓
-Postgres / APIs
+Golem durable agents / APIs
 ```
 
 Also:
@@ -438,7 +441,8 @@ Responsibilities:
 
 Responsibilities:
 
-- shared memory
+- shared user memory via a user-scoped Golem memory agent
+- local agent memory via each durable task/worker agent's own state
 - user preferences
 - retrieval
 - persistence
@@ -520,37 +524,107 @@ Do NOT overengineer.
 
 ---
 
-## Tables
+## Golem-Native Memory Model
 
-### users
+Use Golem's durable agent model as the MVP memory layer.
 
-Stores:
+Do NOT add PostgreSQL just to satisfy memory persistence.
 
-- user metadata
+The hackathon requirement is:
 
----
+- each user has isolated memory
+- all agents for that user can access shared memory
+- each individual agent can keep local memory for its own task/session
+- memory survives across invocations
 
-### memories
+Golem already provides the pieces needed for this:
 
-Stores:
-
-- shared user facts/preferences
-
----
-
-### reminders
-
-Stores:
-
-- scheduled reminders
+- durable agent state
+- agent identity from constructor parameters
+- sequential invocation per agent
+- RPC between agents
+- scheduling/future calls for reminders
 
 ---
 
-### agent_sessions
+## Shared User Memory Agent
+
+Create one durable memory agent per user.
+
+Identity:
+
+```txt
+UserMemoryAgent(userId)
+```
 
 Stores:
 
-- ongoing context/session state
+- facts
+- preferences
+- active reminders summary
+- known contact hints
+- recent important context
+
+Example API:
+
+```ts
+class UserMemoryAgent {
+  remember(fact: MemoryFact): Promise<void>;
+  recall(query: MemoryQuery): Promise<MemoryFact[]>;
+  listPreferences(): Promise<UserPreferences>;
+}
+```
+
+All task agents running for the same user call this agent when they need shared context.
+
+---
+
+## Local Agent Memory
+
+Each task/worker agent keeps its own durable local state.
+
+Identity examples:
+
+```txt
+ConversationAgent(userId, agentId)
+ReminderAgent(userId)
+ResearchAgent(userId, taskId)
+EmailAgent(userId, taskId)
+```
+
+Stores:
+
+- current task context
+- intermediate tool results
+- conversation-specific notes
+- workflow progress
+
+This memory is not global. It belongs to that agent instance.
+
+---
+
+## User Isolation
+
+User isolation is enforced through Golem agent identity:
+
+- include `userId` in every user-owned agent constructor
+- never call `UserMemoryAgent` without the current `userId`
+- never share agent IDs across users
+- keep Telegram IDs mapped to internal user IDs at the boundary
+
+---
+
+## Reminder State
+
+Reminders can also live in Golem state.
+
+Recommended MVP:
+
+- `ReminderAgent(userId)` stores reminder records
+- scheduled/future calls wake the agent at the right time
+- the agent sends the notification through `TelegramService`
+
+Postgres is not required for reminders unless we later need ad hoc querying/reporting.
 
 ---
 
@@ -582,7 +656,6 @@ src/
   infrastructure/
     telegram/
     golem/
-    database/
 
   services/
     telegram/
@@ -674,7 +747,7 @@ Clean coordination between:
 
 - ReminderService
 - MemoryService
-- Postgres persistence
+- Golem-backed shared/local memory
 
 ---
 

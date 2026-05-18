@@ -1,3 +1,5 @@
 import { Layer, ManagedRuntime } from "effect";
 
-export const appRuntime = ManagedRuntime.make(Layer.empty);
+import { WeatherServiceLive } from "../services/weather.js";
+
+export const appRuntime = ManagedRuntime.make(WeatherServiceLive);
