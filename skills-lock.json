@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "golem-cloud-account-setup": {
+      "source": "golemcloud/skills",
+      "sourceType": "github",
+      "skillPath": "skills/golem-cloud-account-setup/SKILL.md",
+      "computedHash": "24c6fd8a3bb3af8167250b93d3c4d571c299f8497d47f4fd14609b949dca3fd2"
+    }
+  }
+}

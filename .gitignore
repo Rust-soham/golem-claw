@@ -6,6 +6,8 @@ dist/
 build/
 coverage/
 *.tsbuildinfo
+packages/golem/golem-temp/
+packages/golem/node_modules/
 
 # Package manager stores
 .pnpm-store/

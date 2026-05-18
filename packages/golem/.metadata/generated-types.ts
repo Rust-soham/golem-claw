@@ -1,0 +1,26 @@
+export const Metadata = {
+  "CounterAgent": {
+    "constructorArgs": [
+      {
+        "name": "name",
+        "type": {
+          "kind": "string",
+          "optional": false
+        }
+      }
+    ],
+    "methods": {
+      "increment": {
+        "methodParams": {},
+        "returnType": {
+          "kind": "promise",
+          "element": {
+            "kind": "number",
+            "optional": false
+          },
+          "optional": false
+        }
+      }
+    }
+  }
+};
